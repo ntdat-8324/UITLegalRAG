@@ -1,0 +1,26 @@
+# Core
+fastapi==0.115.*
+uvicorn[standard]==0.34.*
+pydantic==2.*
+pydantic-settings==2.*
+python-dotenv==1.*
+
+# NLP & ML
+chromadb==0.5.*
+sentence-transformers==3.*
+rank-bm25==0.2.*
+py-vncorenlp==0.1.*
+scikit-learn==1.5.*
+numpy==1.*
+pandas==2.*
+torch>=2.0
+
+# LLM integration
+openai==1.*
+
+# Evaluation
+rouge-score==0.1.*
+bert-score==0.3.*
+
+# Utilities
+nltk==3.*
