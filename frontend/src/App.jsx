@@ -42,7 +42,8 @@ function App() {
 
   // Auto-scroll
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Disable smooth scrolling during fast streaming updates to avoid UI locking/jerkiness
+    messagesEndRef.current?.scrollIntoView({ behavior: isLoading ? 'auto' : 'smooth' });
   }, [messages, isLoading]);
 
   const createNewSession = () => {
@@ -109,29 +110,62 @@ function App() {
     setInput('');
     setIsLoading(true);
 
+    // Create an empty AI message placeholder
+    const aiMsgId = (Date.now() + 1).toString();
+    const initialAiMsg = { id: aiMsgId, role: 'assistant', content: '', sources: [] };
+    let currentAiMsg = { ...initialAiMsg };
+    updateSessionMessages([...newMessages, currentAiMsg]);
+
     try {
-      const response = await axios.post(`${API_BASE}/query`, {
-        question: input,
-        top_k: 5,
-        use_classifier: true,
-        use_reranker: true
+      const response = await fetch(`${API_BASE}/query_stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: input,
+          top_k: 5,
+          use_classifier: true,
+          use_reranker: true
+        })
       });
 
-      const aiMsg = { 
-        id: (Date.now() + 1).toString(), 
-        role: 'assistant', 
-        content: response.data.answer,
-        sources: response.data.sources
-      };
-      updateSessionMessages([...newMessages, aiMsg]);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // Keep the last incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.substring(6);
+            if (!dataStr.trim()) continue;
+            try {
+              const data = JSON.parse(dataStr);
+              if (data.type === 'sources') {
+                currentAiMsg.sources = data.data;
+              } else if (data.type === 'chunk') {
+                currentAiMsg.content += data.content;
+              }
+              // Update state for re-render
+              updateSessionMessages([...newMessages, { ...currentAiMsg }]);
+            } catch (err) {
+              console.error("Error parsing stream data", err, dataStr);
+            }
+          }
+        }
+      }
     } catch (error) {
       console.error(error);
-      const errorMsg = { 
-        id: (Date.now() + 1).toString(), 
-        role: 'assistant', 
-        content: 'Xin lỗi, đã xảy ra lỗi kết nối với máy chủ. Vui lòng thử lại sau.' 
-      };
-      updateSessionMessages([...newMessages, errorMsg]);
+      currentAiMsg.content = 'Xin lỗi, đã xảy ra lỗi kết nối với máy chủ. Vui lòng thử lại sau.';
+      updateSessionMessages([...newMessages, currentAiMsg]);
     } finally {
       setIsLoading(false);
     }
@@ -216,14 +250,22 @@ function App() {
                 <div className={`avatar ${msg.role === 'user' ? 'avatar-user' : 'avatar-ai'}`}>
                   {msg.role === 'user' ? 'U' : <Shield size={20} color="#fff" />}
                 </div>
-                <div className="message-content">
-                  <div className="message-text">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  </div>
-                  
-                  {msg.role === 'assistant' && (
-                    <div className="message-actions">
-                      <CopyButton text={msg.content} />
+                  <div className="message-content">
+                    <div className="message-text">
+                      {msg.role === 'assistant' && !msg.content ? (
+                        <div className="typing-indicator" style={{marginTop: '8px'}}>
+                          <div className="typing-dot"></div>
+                          <div className="typing-dot"></div>
+                          <div className="typing-dot"></div>
+                        </div>
+                      ) : (
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      )}
+                    </div>
+                    
+                    {msg.role === 'assistant' && msg.content && (
+                      <div className="message-actions">
+                        <CopyButton text={msg.content} />
                       <button 
                         className={`action-btn ${bookmarks.find(b=>b.id===msg.id) ? 'active' : ''}`}
                         onClick={() => toggleBookmark(msg.id, msg.content)}
@@ -253,20 +295,6 @@ function App() {
                 </div>
               </div>
             ))
-          )}
-          {isLoading && (
-            <div className="message-container message-ai">
-              <div className="avatar avatar-ai">
-                <Shield size={20} color="#fff" />
-              </div>
-              <div className="message-content" style={{display: 'flex', alignItems: 'center'}}>
-                <div className="typing-indicator">
-                  <div className="typing-dot"></div>
-                  <div className="typing-dot"></div>
-                  <div className="typing-dot"></div>
-                </div>
-              </div>
-            </div>
           )}
           <div ref={messagesEndRef} />
         </div>

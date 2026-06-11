@@ -8,6 +8,7 @@ An end-to-end Hybrid RAG (Retrieval-Augmented Generation) system specialized for
 - **Cross-Encoder Reranking**: Re-evaluates and scores retrieved documents using `itdainb/PhoRanker` to maximize relevance.
 - **Document Classification**: Utilizes a Support Vector Machine (SVM) combined with TF-IDF to filter and narrow down the search space, significantly boosting both retrieval speed and accuracy.
 - **LLM Answer Generation**: Leverages the `Gemma 2 9B IT` model via OpenRouter API, instructed with carefully crafted prompts tailored for Vietnamese legal consulting.
+- **Real-time Streaming (SSE)**: Provides a ChatGPT-like typing effect using Server-Sent Events (SSE) and FastAPI's `StreamingResponse`, instantly displaying legal sources while the AI thinks.
 - **VnCoreNLP Preprocessing**: Ensures robust and accurate Vietnamese word segmentation.
 - **Modern UI**: A premium, responsive chatbot interface built with React and Vite, featuring dark mode, chat history, and bookmarking capabilities.
 
