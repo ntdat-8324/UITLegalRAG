@@ -38,6 +38,10 @@ body {
 /* Sidebar */
 .sidebar {
   width: 260px;
+  min-width: 200px;
+  max-width: 500px;
+  resize: horizontal;
+  overflow-x: hidden;
   background-color: var(--sidebar-bg);
   display: flex;
   flex-direction: column;

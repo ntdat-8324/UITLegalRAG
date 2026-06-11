@@ -72,7 +72,7 @@ function App() {
         // Update title based on first user message if it's "New Chat"
         let title = s.title;
         if (title === 'New Chat' && newMessages.length > 0) {
-          title = newMessages[0].content.substring(0, 30) + (newMessages[0].content.length > 30 ? '...' : '');
+          title = newMessages[0].content;
         }
         return { ...s, title, messages: newMessages };
       }
@@ -199,9 +199,9 @@ function App() {
                 className={`history-item ${s.id === currentSessionId ? 'active' : ''}`}
                 onClick={() => loadSession(s.id)}
               >
-                <MessageSquare size={16} />
-                <span style={{flex: 1}}>{s.title}</span>
-                <Trash2 size={14} className="delete-icon" onClick={(e) => deleteSession(e, s.id)} style={{color: '#64748b'}}/>
+                <MessageSquare size={16} style={{flexShrink: 0}} />
+                <span style={{flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{s.title}</span>
+                <Trash2 size={14} className="delete-icon" onClick={(e) => deleteSession(e, s.id)} style={{color: '#64748b', flexShrink: 0}}/>
               </div>
             ))}
           </div>
@@ -209,12 +209,12 @@ function App() {
           {bookmarks.length > 0 && (
             <div className="sidebar-section">
               <div className="sidebar-title">Bookmarks</div>
-              {bookmarks.map(b => (
-                <div key={b.id} className="history-item">
-                  <Bookmark size={16} color="#fbbf24" />
-                  <span>{b.content.substring(0, 25)}...</span>
-                </div>
-              ))}
+                {bookmarks.map(b => (
+                  <div key={b.id} className="history-item">
+                    <Bookmark size={16} color="#fbbf24" style={{flexShrink: 0}} />
+                    <span style={{flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{b.content}</span>
+                  </div>
+                ))}
             </div>
           )}
         </div>
