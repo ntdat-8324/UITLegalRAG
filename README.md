@@ -1,15 +1,15 @@
 # Vietnamese Legal Hybrid RAG System
 
-Hệ thống Hybrid RAG (Retrieval-Augmented Generation) chuyên biệt cho văn bản pháp luật Việt Nam (Quy chế, Điều luật đại học và các văn bản quy phạm pháp luật khác). Hệ thống kết hợp giữa tìm kiếm từ khóa (BM25), tìm kiếm ngữ nghĩa (SBERT), xếp hạng lại (Cross-encoder PhoRanker) và sinh câu trả lời bằng LLM (Gemma 2) để đảm bảo độ chính xác cao nhất cho ngữ cảnh pháp lý.
+An end-to-end Hybrid RAG (Retrieval-Augmented Generation) system specialized for Vietnamese legal documents. This project implements a high-performance retrieval pipeline combining BM25 (sparse retrieval), SBERT (dense retrieval), Cross-Encoder reranking, SVM classification, and an LLM generator to ensure highly accurate and context-aware legal consultation.
 
-## ✨ Tính năng chính
+## ✨ Key Features
 
-- **Hybrid Retrieval**: Kết hợp linh hoạt giữa Sparse Retrieval (BM25Plus) và Dense Retrieval (SBERT `bkai-foundation-models/vietnamese-bi-encoder`).
-- **Reranking**: Sử dụng Cross-encoder (`itdainb/PhoRanker`) để chấm điểm lại mức độ liên quan của các tài liệu tìm được.
-- **Classification**: Tích hợp mô hình học máy SVM (Support Vector Machine) với TF-IDF để phân loại và giới hạn không gian tìm kiếm, giúp tăng tốc độ và độ chính xác.
-- **LLM Answer Generation**: Sử dụng mô hình `Gemma 2 9B IT` thông qua OpenRouter API, được prompt thiết kế riêng cho tư vấn pháp luật.
-- **VnCoreNLP Preprocessing**: Đảm bảo chất lượng tách từ (word segmentation) tiếng Việt.
-- **Modern UI**: Giao diện Chatbot chuyên nghiệp xây dựng bằng React/Vite với Dark mode, History và Bookmarks.
+- **Hybrid Retrieval**: Effectively fuses Sparse Retrieval (BM25Plus) with Dense Retrieval (SBERT using `bkai-foundation-models/vietnamese-bi-encoder`).
+- **Cross-Encoder Reranking**: Re-evaluates and scores retrieved documents using `itdainb/PhoRanker` to maximize relevance.
+- **Document Classification**: Utilizes a Support Vector Machine (SVM) combined with TF-IDF to filter and narrow down the search space, significantly boosting both retrieval speed and accuracy.
+- **LLM Answer Generation**: Leverages the `Gemma 2 9B IT` model via OpenRouter API, instructed with carefully crafted prompts tailored for Vietnamese legal consulting.
+- **VnCoreNLP Preprocessing**: Ensures robust and accurate Vietnamese word segmentation.
+- **Modern UI**: A premium, responsive chatbot interface built with React and Vite, featuring dark mode, chat history, and bookmarking capabilities.
 
 ## 🛠 Tech Stack
 
@@ -17,92 +17,91 @@ Hệ thống Hybrid RAG (Retrieval-Augmented Generation) chuyên biệt cho văn
 - **Frontend**: React 18, Vite, Lucide React
 - **Vector Database**: ChromaDB
 - **Machine Learning**: Scikit-Learn (SVM), Sentence-Transformers, Rank-BM25, HuggingFace
-- **LLM API**: OpenRouter (`google/gemma-2-9b-it:free`)
+- **LLM Provider**: OpenRouter (`google/gemma-2-9b-it:free`)
 
 ---
 
-## 📂 Cấu trúc dự án
+## 📂 Project Structure
 
 ```
 .
-├── api/                  # FastAPI app và endpoints
-├── frontend/             # Ứng dụng React JS
-├── scripts/              # Các kịch bản cài đặt, huấn luyện và đánh giá
-├── src/                  # Mã nguồn lõi (Core logic)
-│   ├── classification/   # Pipeline phân loại tài liệu (SVM)
-│   ├── config/           # Cấu hình hệ thống (Pydantic settings)
-│   ├── generation/       # Gọi API LLM
-│   ├── indexing/         # Đánh chỉ mục dữ liệu (BM25, ChromaDB)
-│   ├── preprocessing/    # Tiền xử lý (VnCoreNLP, Stopwords)
-│   └── retrieval/        # Tìm kiếm và Reranking
-├── .env.example          # Mẫu cấu hình biến môi trường
-└── requirements.txt      # Thư viện Python cần thiết
+├── api/                  # FastAPI application and endpoints
+├── frontend/             # React JS user interface
+├── scripts/              # Setup, training, and indexing scripts
+├── src/                  # Core system logic
+│   ├── classification/   # SVM document classification pipeline
+│   ├── config/           # Pydantic settings and configurations
+│   ├── generation/       # LLM API integration
+│   ├── indexing/         # ChromaDB and BM25 index builders
+│   ├── preprocessing/    # VnCoreNLP segmenter and Stopwords remover
+│   └── retrieval/        # Hybrid Retriever and Reranker
+├── .env.example          # Example environment variables
+└── requirements.txt      # Python dependencies
 ```
 
 ---
 
-## 🚀 Hướng dẫn cài đặt và chạy hệ thống
+## 🚀 Installation & Setup Guide
 
-### 1. Yêu cầu hệ thống (Prerequisites)
-- [Python 3.10+](https://www.python.org/)
-- [Java JDK 8+](https://www.oracle.com/java/technologies/downloads/) (Bắt buộc cho VnCoreNLP)
-- [Node.js & npm](https://nodejs.org/) (Cho frontend)
-- [uv](https://github.com/astral-sh/uv) - Trình quản lý package Python cực nhanh (Cài đặt bằng lệnh `pip install uv` nếu chưa có)
+### 1. Prerequisites
+- [Python 3.11+](https://www.python.org/)
+- [Java JDK 8+](https://www.oracle.com/java/technologies/downloads/) (Strictly required for VnCoreNLP)
+- [Node.js & npm](https://nodejs.org/) (For the frontend)
+- [uv](https://github.com/astral-sh/uv) - An extremely fast Python package installer (`pip install uv`)
 
-### 2. Thiết lập Backend (Python)
+### 2. Backend Setup
 
-Tạo virtual environment với tên `myvenv` bằng `uv`:
+Create and activate a virtual environment using `uv`, then install dependencies:
 
 ```bash
-# Tạo virtual environment
+# Create a virtual environment named 'myvenv'
 uv venv myvenv
 
-# Kích hoạt virtual environment
-# Windows:
+# Activate the virtual environment
+# On Windows:
 myvenv\Scripts\activate
-# Linux/macOS:
+# On Linux/macOS:
 # source myvenv/bin/activate
 
-# Cài đặt các thư viện cần thiết siêu tốc với uv
+# Install dependencies blazing fast
 uv pip install -r requirements.txt
 ```
 
-Thiết lập biến môi trường:
-- Copy file `.env.example` thành `.env`
-- Mở file `.env` và thêm khóa API OpenRouter của bạn vào biến `OPENROUTER_API_KEY`
+Configure environment variables:
+- Copy `.env.example` to `.env`
+- Open `.env` and set your OpenRouter API Key in the `OPENROUTER_API_KEY` variable.
 
-### 3. Chuẩn bị Dữ liệu (Data Preparation)
+### 3. Data Preparation
 
-Hệ thống cần các file dữ liệu tại thư mục `data/raw/` và `data/stopwords/`:
-1. Tạo thư mục `data/raw/` và đặt file `train.csv` (Cùng với val.csv, test.csv nếu cần) vào đó. (File CSV phải có cột `question`, `context`, `document`, `article`).
-2. Đặt file stopwords tiếng Việt vào `data/stopwords/vietnamese-stopwords.txt`.
+The system expects raw data files to be placed in `data/raw/` and stopwords in `data/stopwords/`:
+1. Create a `data/raw/` directory and place your `train.csv` (and optionally `val.csv`, `test.csv`) inside. The CSV must contain `question`, `context`, `document`, and `article` columns.
+2. Place your Vietnamese stopwords file at `data/stopwords/vietnamese-stopwords.txt`.
 
-### 4. Setup Pipelines & Indexing
+### 4. Setup NLP Pipelines & Indexing
 
-Đảm bảo bạn vẫn đang ở trong `myvenv` và chạy lần lượt các script sau từ thư mục gốc:
+Ensure your virtual environment is activated and execute the following scripts in order from the root directory:
 
-**Bước 4.1: Cài đặt VnCoreNLP**
-Tải mô hình phân mảnh từ tiếng Việt:
+**Step 4.1: Install VnCoreNLP**
+Downloads the required Vietnamese word segmentation models to your local machine (`~/.vncorenlp`).
 ```bash
 python scripts/setup_vncorenlp.py
 ```
 
-**Bước 4.2: Huấn luyện mô hình SVM**
-Huấn luyện Classifier để lọc Document liên quan:
+**Step 4.2: Train the SVM Classifier**
+Trains the ML classifier used to filter relevant legal documents.
 ```bash
 python scripts/train_svm.py
 ```
 
-**Bước 4.3: Xây dựng Vector DB & BM25 Index**
-Nhúng dữ liệu (Embedding) và xây dựng chỉ mục:
-*(Quá trình này có thể mất một chút thời gian do phải chạy mô hình SBERT để tạo vector)*
+**Step 4.3: Build Vector DB & BM25 Index**
+Embeds the legal corpus and builds indices. *(This step may take a few minutes as SBERT processes the vectors).*
 ```bash
 python scripts/index_data.py
 ```
 
-### 5. Thiết lập Frontend (React)
+### 5. Frontend Setup
 
-Mở một cửa sổ Terminal/Command Prompt mới:
+Open a new Terminal/Command Prompt window:
 
 ```bash
 cd frontend
@@ -111,27 +110,27 @@ npm install
 
 ---
 
-## 🏃 Khởi chạy Hệ thống
+## 🏃 Running the Application
 
-### Bật FastAPI Backend
-Từ thư mục gốc của dự án (hãy chắc chắn `myvenv` đang được kích hoạt):
+### Start the FastAPI Backend
+From the project root directory (ensure the virtual environment is activated):
 ```bash
 uvicorn api.main:app --reload
 ```
-*API sẽ chạy tại http://localhost:8000*
-*Swagger Docs: http://localhost:8000/docs*
+*The API will be available at http://localhost:8000*
+*Swagger UI Documentation: http://localhost:8000/docs*
 
-### Bật React Frontend
-Mở cửa sổ Terminal/Command Prompt dành cho frontend (thư mục `/frontend`):
+### Start the React Frontend
+In your frontend terminal (`/frontend` directory):
 ```bash
 npm run dev
 ```
-*Ứng dụng web sẽ chạy tại đường dẫn được hiển thị (Thường là http://localhost:5173)*
+*The web application will be accessible at the displayed local URL (typically http://localhost:5173)*
 
 ---
 
-## 💡 Xử lý lỗi thường gặp
+## 💡 Troubleshooting
 
-1. **Lỗi VnCoreNLP (Java)**: Đảm bảo Java đã có trong PATH của hệ thống. Bạn có thể kiểm tra bằng lệnh `java -version`.
-2. **Lỗi ChromaDB Module**: Nếu ChromaDB báo lỗi, hãy đảm bảo bạn dùng C++ build tools bản mới nhất nếu dùng Windows. `uv` xử lý wheels khá tốt nhưng đôi khi C++ Build tools là bắt buộc.
-3. **Frontend gọi API bị lỗi Network**: Kiểm tra biến `API_BASE` trong `frontend/src/App.jsx` xem có trùng khớp với cổng Backend (mặc định 8000) hay không.
+1. **VnCoreNLP/Java Errors**: Ensure Java JDK is installed and the `JAVA_HOME` environment variable is correctly set and added to your system PATH.
+2. **Missing Authentication header (LLM)**: Verify that your `OPENROUTER_API_KEY` in the `.env` file is valid and contains no trailing spaces.
+3. **InvalidCollectionException**: This occurs if the Backend is started before `scripts/index_data.py` finishes successfully. Ensure indexing is 100% complete before starting Uvicorn.
